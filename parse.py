@@ -15,7 +15,6 @@ def main(cmd_params):
 
     if consider_time_in == 'secs': 
         required_log_timestamp = now - dt.timedelta(seconds = parse_logs_back_untill)
-        formatted_required_timestamp = 
     else:	
         required_log_timestamp = now - dt.timedelta(minutes = parse_logs_back_untill)
     
@@ -24,12 +23,17 @@ def main(cmd_params):
             m = rg.search(line)
             if m:
                 logged_datetime = m.group(1)
-                logged_datetime = logged_datetime.translate(None, '[]')
-		print logged_datetime
+                logged_datetime = str(logged_datetime.translate(None, '[]'))
+	        print '######## ' + logged_datetime 
+		if consider_time_in == 'secs':
+                    formatted_logged_time = dt.datetime.strptime(logged_datetime, '%d/%b/%Y:%I:%M:%S +0000')
+		else : 
+		    formatted_logged_time = dt.datetime.strptime(logged_datetime, '%d/%b/%Y:%I:%M +0000')
+		
+               # print type(formatted_logged_time) + 'calculated tie: ' + required_log_timestamp
 
-
-
-
+            else :
+	        print 'error, the date could not be parsed.'   
 
 if __name__ == '__main__':
     from optparse import OptionParser
