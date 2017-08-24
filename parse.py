@@ -68,9 +68,9 @@ def main(cmd_params):
            if regex_api_result:
                api_path = regex_api_result.group(1)
                if api_path == '/api/v1/send/all':
-                   send_all_total_calls++
-               if api_path == 'api/v1/send/all' && regex_200_result == 200:
-                   send_all_response_200++
+                   send_all_total_calls += 1
+               if api_path == 'api/v1/send/all' and regex_200_result == 200:
+                   send_all_response_200 += 1
                    
            else:
                None
