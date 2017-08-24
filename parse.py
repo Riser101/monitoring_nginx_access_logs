@@ -1,6 +1,8 @@
 import os
 import datetime as dt
 import re
+from datadog import initialize, api
+import time
 
 def main(cmd_params):
     consider_time_in = cmd_params[0]
@@ -45,15 +47,35 @@ def main(cmd_params):
     ## remove this
     timestamp_to_match_aganist = '2017-08-23 12:54:47'
     ##
+    
+    options = {'api_key': '43edd51e5bec66d97f5c46e838260ede'}
+    initialize(**options)
+    now = time.time()
+    future_10s = now + 10
+    
+    send_all_total_calls = 0
+    send_all_response_200 = 0
+
+
+    regex_for_200='.*?(200)'
+    compiled_regex_for_200 = re.compile(regex_for_200,re.IGNORECASE|re.DOTALL)
+
     with open(str(timestamp_to_match_aganist)+'.log') as read_handle:
+        #this loops over every entry in new log file
         for line in read_handle:
-           regex_result =  regex_match_for_apipath.search(line)       
-           if regex_result:
-               api_path = regex_result.group(1)
+           regex_api_result =  regex_match_for_apipath.search(line)      
+           regex_200_result = compiled_regex_for_200.search(line)
+           if regex_api_result:
+               api_path = regex_api_result.group(1)
                if api_path == '/api/v1/send/all':
-                   print 'we have something for you'
+                   send_all_total_calls++
+               if api_path == 'api/v1/send/all' && regex_200_result == 200:
+                   send_all_response_200++
+                   
            else:
                None
+        print send_all_total_calls
+        print send_all_response_200
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
