@@ -3,35 +3,55 @@ import datetime as dt
 import re
 
 def main(cmd_params):
-    print cmd_params
     consider_time_in = cmd_params[0]
     parse_logs_back_untill = int(cmd_params[1])
-    now = dt.datetime.utcnow()
+    now = dt.datetime.utcnow().replace(microsecond=0)
+
     access_log = os.path.abspath(os.path.expanduser(os.environ.get('access_log', '/var/log/nginx/access.log')))
 
     re1='.*?'
     re2='(\\[.*?\\])'
     rg = re.compile(re1+re2,re.IGNORECASE|re.DOTALL)
-
-    if consider_time_in == 'secs':
-        timestamp_to_match_aganist = now - dt.timedelta(seconds = parse_logs_back_untill)
-    else:
-        timestamp_to_match_aganist = now - dt.timedelta(minutes = parse_logs_back_untill)
+    
+    # pulls log entries for this timestamp
+    timestamp_to_match_aganist = now - dt.timedelta(seconds = parse_logs_back_untill)
 
     with open(access_log) as fin:
         for line in fin:
             regex_match = rg.search(line)
             if regex_match:
+                
                 timestamp_from_logfile = regex_match.group(1)
                 timestamp_from_logfile = str(timestamp_from_logfile.translate(None, '[]'))
-                if consider_time_in == 'secs':
-                    timestamp_from_logfile_formatted = dt.datetime.strptime(timestamp_from_logfile, '%d/%b/%Y:%I:%M:%S +0000')
-                    print timestamp_from_logfile_formatted
-                else :
-                    timestamp_from_logfile_formatted = dt.datetime.strptime(timestamp_from_logfile, '%d/%b/%Y:%I:%M +0000')
+                timestamp_from_logfile_formatted = dt.datetime.strptime(timestamp_from_logfile, '%d/%b/%Y:%I:%M:%S +0000')
+                
+                if timestamp_to_match_aganist == timestamp_from_logfile_formatted:
+                    print 'found it'
+                    file_handle = open(timestamp_to_match_aganist+'.log', 'w+')
+                    file_handle.write(line)
+                else:
+                    None    
             else :
                 print 'error, the date could not be parsed.'
+        fin.close()
 
+    regex_for_api_path1='.*?'    
+    regex_for_api_path2='(?:\\/[\\w\\.\\-]+)+'    
+    regex_for_api_path3='.*?'    
+    regex_for_api_path4='((?:\\/[\\w\\.\\-]+)+)'    
+
+    regex_match_for_apipath = re.compile(regex_for_api_path1+regex_for_api_path2+regex_for_api_path3+regex_for_api_path4,re.IGNORECASE|re.DOTALL)
+    
+    ## remove this
+    timestamp_to_match_aganist = '2017-08-23 12:54:47'
+    ##
+    with open(str(timestamp_to_match_aganist)+'.log') as read_handle:
+        for line in read_handle:
+           regex_result =  regex_match_for_apipath.search(line)       
+           if regex_result:
+               api_path = regex_result.group(1)
+               print api_path
+            
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
