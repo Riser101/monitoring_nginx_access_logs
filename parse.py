@@ -50,8 +50,10 @@ def main(cmd_params):
            regex_result =  regex_match_for_apipath.search(line)       
            if regex_result:
                api_path = regex_result.group(1)
-               print api_path
-            
+               if api_path == '/api/v1/send/all':
+                   print 'we have something for you'
+           else:
+               None
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
