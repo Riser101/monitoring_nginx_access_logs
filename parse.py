@@ -75,7 +75,7 @@ def main(cmd_params):
         #this loops over every entry in new log file
         for line in read_handle:
            
-           response_time_list = [] 
+          # response_time_list = [] 
            regex_api_result =  regex_match_for_apipath.search(line)      
            regex_200_result = regex_match_for_response_200.search(line)
            regex_400_result = regex_match_for_response_400.search(line)
@@ -112,15 +112,15 @@ def main(cmd_params):
                    None
                
                if regex_response_time_result:
-                   send_all_with_response_time = regex_response_time_result.group(1)
+                   send_all_with_response_time = int(regex_response_time_result.group(1))
                    if api_path == '/api/v1/send/all':
                        response_time_list.append(send_all_with_response_time)
-                       print response_time_list
+
 
            else:
                None
         
-        print response_time_list
+        mean_of_response_time = sum(response_time_list)/len(response_time_list)
        # print len(response_time_list)
        # print send_all_total_calls
        # print send_all_response_200
@@ -128,7 +128,7 @@ def main(cmd_params):
        # print send_all_response_500
         
         api.Metric.send([{'metric':'send_all_total_calls', 'points':send_all_total_calls}, {'metric':'send_all_response_200', 'points':send_all_response_200}, {'metric':'send_all_response_400',  
-            'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}])
+            'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}, {'metric':'mean_of_response_time', 'points':mean_of_response_time}])
 
 if __name__ == '__main__':
     from optparse import OptionParser
