@@ -55,27 +55,62 @@ def main(cmd_params):
     
     send_all_total_calls = 0
     send_all_response_200 = 0
+    send_all_response_400 = 0
+    send_all_response_500 = 0 
 
 
     regex_for_200='.*?(200)'
-    compiled_regex_for_200 = re.compile(regex_for_200,re.IGNORECASE|re.DOTALL)
+    regex_match_for_response_200 = re.compile(regex_for_200,re.IGNORECASE|re.DOTALL)
 
+    regex_for_400='.*?(400)'
+    regex_match_for_response_400 = re.compile(regex_for_400,re.IGNORECASE|re.DOTALL)
+    
+    regex_for_500='.*?(500)'
+    regex_match_for_response_500 = re.compile(regex_for_500,re.IGNORECASE|re.DOTALL)
+    
     with open(str(timestamp_to_match_aganist)+'.log') as read_handle:
         #this loops over every entry in new log file
         for line in read_handle:
            regex_api_result =  regex_match_for_apipath.search(line)      
-           regex_200_result = compiled_regex_for_200.search(line)
+           regex_200_result = regex_match_for_response_200.search(line)
+           regex_400_result = regex_match_for_response_400.search(line)
+           regex_500_result = regex_match_for_response_500.search(line)
+           
            if regex_api_result:
                api_path = regex_api_result.group(1)
+               
                if api_path == '/api/v1/send/all':
                    send_all_total_calls += 1
-               if api_path == 'api/v1/send/all' and regex_200_result == 200:
-                   send_all_response_200 += 1
-                   
+               else:
+                   None
+              
+               if regex_200_result:
+                   send_all_with_response_200 = regex_200_result.group(1)
+                   if api_path == '/api/v1/send/all' and int(send_all_with_response_200) == 200:
+                       send_all_response_200 += 1
+               else:
+                   None
+               
+               if regex_400_result:
+                   send_all_with_response_400 = regex_400_result.group(1)
+                   if api_path == '/api/v1/send/all' and int(send_all_with_response_400) == 400:
+                       send_all_response_400 += 1
+               else:
+                   None
+               
+               if regex_500_result:
+                   send_all_with_response_500 = regex_500_result.group(1)
+                   if api_path == '/api/v1/send/all' and int(send_all_with_response_500) == 500:
+                       send_all_response_500 += 1
+               else:
+                   None
+
            else:
                None
         print send_all_total_calls
         print send_all_response_200
+        print send_all_response_400
+        print send_all_response_500
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
