@@ -111,6 +111,8 @@ def main(cmd_params):
         print send_all_response_200
         print send_all_response_400
         print send_all_response_500
+        
+        api.Metric.send([{'metric':'send_all_total_calls', 'points':send_all_total_calls}, {'metric':'send_all_response_200', 'points':send_all_response_200}, {'metric':'send_all_response_400', 'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}]
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
