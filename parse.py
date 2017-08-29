@@ -57,7 +57,7 @@ def main(cmd_params):
     send_all_response_200 = 0
     send_all_response_400 = 0
     send_all_response_500 = 0 
-
+    response_time_list = []
 
     regex_for_200='.*?(200)'
     regex_match_for_response_200 = re.compile(regex_for_200,re.IGNORECASE|re.DOTALL)
@@ -67,15 +67,21 @@ def main(cmd_params):
     
     regex_for_500='.*?(500)'
     regex_match_for_response_500 = re.compile(regex_for_500,re.IGNORECASE|re.DOTALL)
+
+    regex_for_response_time = '.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?(\\d+)'
+    regex_match_for_response_time = re.compile(regex_for_response_time, re.IGNORECASE|re.DOTALL)
     
     with open(str(timestamp_to_match_aganist)+'.log') as read_handle:
         #this loops over every entry in new log file
         for line in read_handle:
+           
+           response_time_list = [] 
            regex_api_result =  regex_match_for_apipath.search(line)      
            regex_200_result = regex_match_for_response_200.search(line)
            regex_400_result = regex_match_for_response_400.search(line)
            regex_500_result = regex_match_for_response_500.search(line)
-           
+           regex_response_time_result = regex_match_for_response_time.search(line)
+
            if regex_api_result:
                api_path = regex_api_result.group(1)
                
@@ -104,15 +110,26 @@ def main(cmd_params):
                        send_all_response_500 += 1
                else:
                    None
+               
+               if regex_response_time_result:
+                   send_all_with_response_time = regex_response_time_result.group(1)
+                   if api_path == '/api/v1/send/all':
+                       response_time_list.append(send_all_with_response_time)
+                       print response_time_list
 
            else:
                None
-        print send_all_total_calls
-        print send_all_response_200
-        print send_all_response_400
-        print send_all_response_500
         
-        api.Metric.send([{'metric':'send_all_total_calls', 'points':send_all_total_calls}, {'metric':'send_all_response_200', 'points':send_all_response_200}, {'metric':'send_all_response_400', 'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}]
+        print response_time_list
+       # print len(response_time_list)
+       # print send_all_total_calls
+       # print send_all_response_200
+       # print send_all_response_400
+       # print send_all_response_500
+        
+        api.Metric.send([{'metric':'send_all_total_calls', 'points':send_all_total_calls}, {'metric':'send_all_response_200', 'points':send_all_response_200}, {'metric':'send_all_response_400',  
+            'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}])
+
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
