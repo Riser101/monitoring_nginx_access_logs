@@ -8,7 +8,7 @@ send_all_total_calls = 0
 send_all_response_200 = 0
 send_all_response_400 = 0
 send_all_response_500 = 0
-response_time_list = []
+send_all_response_time_list = []
 api_path = ''
 
 regex_for_200='.*?(200)'
@@ -79,53 +79,63 @@ def main(cmd_params):
            if regex_api_result:
                global api_path
                api_path = regex_api_result.group(1)
-
-               result = api_path_dict[api_path](line)
-        print result
-        mean_of_response_time = sum(response_time_list)/len(response_time_list)
+               api_path_dict[api_path](line)
+        print send_all_response_200  
+        print send_all_total_calls 
+        print send_all_response_400
+        print send_all_response_500
+        send_all_mean_response_time = sum(send_all_response_time_list)/len(send_all_response_time_list)
         api.Metric.send([{'metric':'send_all_total_calls', 'points':send_all_total_calls}, {'metric':'send_all_response_200', 'points':send_all_response_200}, {'metric':'send_all_response_400',
-            'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}, {'metric':'mean_of_response_time', 'points':mean_of_response_time}])
+            'points':send_all_response_400}, {'metric':'send_all_response_500', 'points':send_all_response_500}, {'metric':'send_all_mean_response_time', 'points':send_all_mean_response_time}])
 
 def send_all(line):
     global send_all_total_calls
     send_all_total_calls += 1
-    regex_200_result = regex_match_for_response_200.search(line)
-    regex_400_result = regex_match_for_response_400.search(line)
-    regex_500_result = regex_match_for_response_500.search(line)
-    regex_response_time_result = regex_match_for_response_time.search(line)
+    http_status_code = parse_status_code(line)
+ #   regex_200_result = regex_match_for_response_200.search(line)
+ #   regex_400_result = regex_match_for_response_400.search(line)
+ #   regex_500_result = regex_match_for_response_500.search(line)
+ #   regex_response_time_result = regex_match_for_response_time.search(line)
     
-    if regex_200_result:
-        send_all_with_response_200 = regex_200_result.group(1)
+    if http_status_code['regex_200_result']:
+        send_all_with_response_200 = http_status_code['regex_200_result'].group(1)
         if int(send_all_with_response_200) == 200:
             global send_all_response_200
             send_all_response_200 += 1
 
-    if regex_400_result:
-        send_all_with_response_400 = regex_400_result.group(1)
+    if http_status_code['regex_400_result']:
+        send_all_with_response_400 = http_status_code['regex_400_result'].group(1)
         if int(send_all_with_response_400) == 400:
             global send_all_response_400
             send_all_response_400 += 1  
 
-    if regex_500_result:
-        send_all_with_response_500 = regex_500_result.group(1)
+    if http_status_code['regex_500_result']:
+        send_all_with_response_500 = http_status_code['regex_500_result'].group(1)
         if int(send_all_with_response_500) == 500:
             global send_all_response_500
             send_all_response_500 += 1              
     
-    if regex_response_time_result:
-        send_all_with_response_time = int(regex_response_time_result.group(1))
+    if http_status_code['regex_response_time_result']:
+        send_all_with_response_time = int(http_status_code['regex_response_time_result'].group(1))
         if api_path == '/api/v1/send/all':
-            global response_time_list
-            response_time_list.append(send_all_with_response_time)
+            global send_all_response_time_list
+            send_all_response_time_list.append(send_all_with_response_time)
+
+#def rss(line):
+#    global rss_total_calls
+#    rss_total_calls += 1
+#    regex_200_result = regex_match_for_response_200.search(line)
+#    regex_400_result = regex_match_for_response_400.search(line)
+#    regex_500_result = regex_match_for_response_500.search(line)
+#    regex_response_time_result = regex_match_for_response_time.search(line)
+
+def parse_status_code(line):
     return {
-        'send_all_total_calls' : send_all_total_calls,
-        'send_all_response_200' : send_all_response_200,
-        'send_all_response_400' : send_all_response_400,
-        'send_all_response_500' : send_all_response_500,
-        'send_all_response_time' : response_time_list
-    }    
-
-
+           'regex_200_result' : regex_match_for_response_200.search(line),
+           'regex_400_result' : regex_match_for_response_400.search(line),
+           'regex_500_result' : regex_match_for_response_500.search(line),
+           'regex_response_time_result': regex_match_for_response_time.search(line)
+    }
 
 if __name__ == '__main__':
     from optparse import OptionParser
