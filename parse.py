@@ -4,12 +4,18 @@ import re
 from datadog import initialize, api
 import time
 
+api_path = ''
 send_all_total_calls = 0
 send_all_response_200 = 0
 send_all_response_400 = 0
 send_all_response_500 = 0
 send_all_response_time_list = []
-api_path = ''
+
+rss_total_calls = 0
+rss_api_response_200 = 0
+rss_api_response_400 = 0
+rss_api_response_500 = 0
+rss_api_response_time_list = []
 
 regex_for_200='.*?(200)'
 regex_match_for_response_200 = re.compile(regex_for_200,re.IGNORECASE|re.DOTALL)
@@ -92,10 +98,6 @@ def send_all(line):
     global send_all_total_calls
     send_all_total_calls += 1
     http_status_code = parse_status_code(line)
- #   regex_200_result = regex_match_for_response_200.search(line)
- #   regex_400_result = regex_match_for_response_400.search(line)
- #   regex_500_result = regex_match_for_response_500.search(line)
- #   regex_response_time_result = regex_match_for_response_time.search(line)
     
     if http_status_code['regex_200_result']:
         send_all_with_response_200 = http_status_code['regex_200_result'].group(1)
@@ -117,17 +119,36 @@ def send_all(line):
     
     if http_status_code['regex_response_time_result']:
         send_all_with_response_time = int(http_status_code['regex_response_time_result'].group(1))
-        if api_path == '/api/v1/send/all':
-            global send_all_response_time_list
-            send_all_response_time_list.append(send_all_with_response_time)
+        global send_all_response_time_list
+        send_all_response_time_list.append(send_all_with_response_time)
 
-#def rss(line):
-#    global rss_total_calls
-#    rss_total_calls += 1
-#    regex_200_result = regex_match_for_response_200.search(line)
-#    regex_400_result = regex_match_for_response_400.search(line)
-#    regex_500_result = regex_match_for_response_500.search(line)
-#    regex_response_time_result = regex_match_for_response_time.search(line)
+def rss(line):
+    global rss_total_calls
+    rss_total_calls += 1
+    http_status_code = parse_status_code(line)
+
+    if http_status_code['regex_200_result']:
+        rss_with_response_200 = http_status_code['regex_200_result]'.group(1)
+        if int(rss_with_response_200) == 200:
+            global rss_api_response_200     
+            rss_api_response_200 += 1
+        
+        if http_status_code['regex_400_result']:    
+            rss_with_response_400 = http_status_code['regex_400_result'].group(1)
+            if int(rss_with_response_400) == 400:
+                global rss_api_response_400
+                rss_api_response_400 += 1
+         
+        if http_status_code['regex_500_result']:      
+            rss_with_response_500 = http_status_code['regex_500_result'].group(1)
+            if int(rss_with_response_500) == 500:
+                global rss_api_response_500
+                rss_api_response_500 += 1
+            
+        if http_status_code['regex_response_time_result']:
+            rss_with_response_time = int(http_status_code['regex_response_time_result'].group(1))
+            global rss_api_response_time_list 
+            rss_api_response_time_list.append(rss_with_response_time)
 
 def parse_status_code(line):
     return {
@@ -135,7 +156,7 @@ def parse_status_code(line):
            'regex_400_result' : regex_match_for_response_400.search(line),
            'regex_500_result' : regex_match_for_response_500.search(line),
            'regex_response_time_result': regex_match_for_response_time.search(line)
-    }
+    }       
 
 if __name__ == '__main__':
     from optparse import OptionParser
