@@ -36,8 +36,8 @@ regex_match_for_response_500 = re.compile(regex_for_500,re.IGNORECASE|re.DOTALL)
 regex_for_response_time = '.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?(\\d+)'
 regex_match_for_response_time = re.compile(regex_for_response_time, re.IGNORECASE|re.DOTALL)
 
-#regex_grab_http_verb ='.*?(?:[a-z][a-z0-9_]*).*?((?:[a-z][a-z0-9_]*))'
-#regex_match_http_verb = re.compile(re.IGNORECASE|re.DOTALL)
+regex_grab_http_verb = '.*?(?:[a-z][a-z]+).*?((?:[a-z][a-z]+))'
+regex_match_for_verb = re.compile(regex_grab_http_verb,re.IGNORECASE|re.DOTALL)
 
 ### this is the main method ###
 def main(cmd_params):
@@ -87,8 +87,11 @@ def main(cmd_params):
         '/api/v1/send/segment' : send_to_segment,
         '/api/v1/send/list': send_to_list,
         '/api/v1/send/individual' : send_to_individual,
-        '/api/v1/segments' : segments_api,
-        '/api/v1/subscribers' : get_segments_for_subscriber
+        '/api/v1/subscribers' : get_segments_for_subscriber,
+        '/api/v1/segments' : { 
+            'post' : create_segment,
+            'get' : get_segments
+        }
     }
 
     with open(str(timestamp_to_match_aganist)+'.log') as read_handle:
@@ -99,11 +102,19 @@ def main(cmd_params):
            if regex_api_result:
                global api_path
                api_path = regex_api_result.group(1)
-               print api_path
+               http_status_code = parse_status_code(line)
+               http_verb = http_status_code['regex_http_verb_result'].group(1)
+               # this path is for add user to segment               
                if re.match('^/api/v1/segments/(\d+)/subscribers', api_path) is not None:
                    print 'we have a mathc'
                elif re.match('^/api/v1/segments/(\d+)/subscribers\?page=(\d+)&per_page=(\d+)', api_path):
-                   print '##################3'
+                   # this path needs updation of the api_path regex
+                   print 'this is path not configured'
+                   return
+               elif api_path == '/api/v1/segments' and http_verb == 'POST':
+                   create_segment()                  
+               elif api_path == '/api/v1/segments' and http_verb == 'GET':
+                   get_segments()
                else:    
                    api_path_dict[api_path](line)
 
@@ -329,14 +340,27 @@ def get_segments_for_subscriber(line):
         global get_seg_for_subs_resp_time_list
         get_seg_for_subs_resp_time_list.append(api_response_time)
 
+def create_segment():
+    print 'hello universe'
+    return None
+
+def get_segments():
+    print 'get segments activated'
+    return None
+ 
+def delete_segment():
+    return None
+
+def remove_subscriber_from_segment():
+    return None
 
 def parse_status_code(line):
     return {
            'regex_200_result' : regex_match_for_response_200.search(line),
            'regex_400_result' : regex_match_for_response_400.search(line),
            'regex_500_result' : regex_match_for_response_500.search(line),
-           'regex_response_time_result': regex_match_for_response_time.search(line)
- #          'regex_http_verb_result' : regex_match_http_verb.search(line)
+           'regex_response_time_result': regex_match_for_response_time.search(line),
+           'regex_http_verb_result' : regex_match_for_verb.search(line)
     }
 
 if __name__ == '__main__':
