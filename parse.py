@@ -36,6 +36,9 @@ regex_match_for_response_500 = re.compile(regex_for_500,re.IGNORECASE|re.DOTALL)
 regex_for_response_time = '.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?\\d+.*?(\\d+)'
 regex_match_for_response_time = re.compile(regex_for_response_time, re.IGNORECASE|re.DOTALL)
 
+#regex_grab_http_verb ='.*?(?:[a-z][a-z0-9_]*).*?((?:[a-z][a-z0-9_]*))'
+#regex_match_http_verb = re.compile(re.IGNORECASE|re.DOTALL)
+
 ### this is the main method ###
 def main(cmd_params):
     consider_time_in = cmd_params[0]
@@ -67,12 +70,9 @@ def main(cmd_params):
                 print 'error, the date could not be parsed.'
         fin.close()
 
-    regex_for_api_path1='.*?'
-    regex_for_api_path2='(?:\\/[\\w\\.\\-]+)+'
-    regex_for_api_path3='.*?'
-    regex_for_api_path4='((?:\\/[\\w\\.\\-]+)+)'
+    regex_for_api_path = '.*?(?:\\/[\\w\\.\\-]+)+.*?((?:\\/[\\w\\.\\-]+)+)'
 
-    regex_match_for_apipath = re.compile(regex_for_api_path1+regex_for_api_path2+regex_for_api_path3+regex_for_api_path4,re.IGNORECASE|re.DOTALL)
+    regex_match_for_apipath = re.compile(regex_for_api_path,re.IGNORECASE|re.DOTALL)
 
     ## remove this
     timestamp_to_match_aganist = '2017-08-23 12:54:47'
@@ -99,7 +99,13 @@ def main(cmd_params):
            if regex_api_result:
                global api_path
                api_path = regex_api_result.group(1)
-               api_path_dict[api_path](line)
+               print api_path
+               if re.match('^/api/v1/segments/(\d+)/subscribers', api_path) is not None:
+                   print 'we have a mathc'
+               elif re.match('^/api/v1/segments/(\d+)/subscribers\?page=(\d+)&per_page=(\d+)', api_path):
+                   print '##################3'
+               else:    
+                   api_path_dict[api_path](line)
 
         print post_send_all_response_200
         print post_send_all_total_calls
@@ -124,10 +130,10 @@ def main(cmd_params):
         print get_seg_for_subs_mean_resp_time
 
 
-        api.Metric.send([{'metric':'post_send_all_total_calls', 'points':post_send_all_total_calls}, {'metric':'post_send_all_response_200', 'points':post_send_all_response_200}, {'metric':'post_send_all_response_400',
-            'points':post_send_all_response_400}, {'metric':'post_send_all_response_500', 'points':post_send_all_response_500}, {'metric':'post_send_all_mean_response_time', 'points':post_send_all_mean_response_time}])
+        api.Metric.send([{'metric':'post_send_all_total_calls', 'points':post_send_all_total_calls}, {'metric':'post_send_all_response_200', 'points':post_send_all_response_200}, {'metric':'post_send_all_response_400','points':post_send_all_response_400}, {'metric':'post_send_all_response_500', 'points':post_send_all_response_500}, {'metric':'post_send_all_mean_response_time', 'points':post_send_all_mean_response_time}])
 
 def send_all(line):
+    print 'getting here'
     global post_send_all_total_calls
     post_send_all_total_calls += 1
     http_status_code = parse_status_code(line)
@@ -330,6 +336,7 @@ def parse_status_code(line):
            'regex_400_result' : regex_match_for_response_400.search(line),
            'regex_500_result' : regex_match_for_response_500.search(line),
            'regex_response_time_result': regex_match_for_response_time.search(line)
+ #          'regex_http_verb_result' : regex_match_http_verb.search(line)
     }
 
 if __name__ == '__main__':
